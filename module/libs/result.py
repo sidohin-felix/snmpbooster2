@@ -29,7 +29,7 @@ from shinken.log import logger
 
 from trigger import get_trigger_result
 from output import get_output
-
+import customFormatterSTM
 
 def set_output_and_status(check_result):
     """ get output, compute exit_code an return it """
@@ -73,7 +73,9 @@ def set_output_and_status(check_result):
         else:
             # If the mapping is done
             # Get output
-            output = get_output(check_result['db_data'])
+            #output = get_output(check_result['db_data'])
+            #I've overwritten this with out ourput...
+            output = customFormatterSTM.customOutputCreator(str(check_result))
             # Handle triggers
             if check_result['db_data'].get('triggers', {}) != {}:
                 error_message, exit_code = get_trigger_result(check_result['db_data'])
