@@ -126,7 +126,10 @@ def customOutputCreator(x):
                     state_map[component]['state'] = "OK"
         else:
             state_map[component] = {}
-            state_map[component]['value'] = sensor_data[component]['ds_oid_value']
+            if isinstance(sensor_data[component]['ds_oid_value'],float):
+                state_map[component]['value'] = "%0.2f" % sensor_data[component]['ds_oid_value']
+            else:
+                state_map[component]['value'] = sensor_data[component]['ds_oid_value']
             state_map[component]['state'] = "OK"
 
     #Now we format the state map into a string and return it.
