@@ -28,7 +28,7 @@ import time
 from shinken.log import logger
 
 from trigger import get_trigger_result
-from output import get_output
+from output import get_output, get_perfdata
 import customFormatterSTM
 
 def set_output_and_status(check_result):
@@ -76,6 +76,9 @@ def set_output_and_status(check_result):
             #output = get_output(check_result['db_data'])
             #I've overwritten this with out ourput...
             output = customFormatterSTM.customOutputCreator(str(check_result))
+            #Let's add some perfdata just to make sure.
+            output = output + " | " + get_perfdata(check_result['db_data'])
+
             # Handle triggers
             if check_result['db_data'].get('triggers', {}) != {}:
                 error_message, exit_code = get_trigger_result(check_result['db_data'])

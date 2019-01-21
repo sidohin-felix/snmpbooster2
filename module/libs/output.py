@@ -42,6 +42,21 @@ def get_output(service):
     else:
         return output + " | " + perfdata
 
+def get_perfdata(service):
+    """ Prepare service output """
+    outputs = []
+    perfdatas = []
+    for ds_name, _ in service['ds'].items():
+        output, perfdata = format_output(service, ds_name)
+        if output != "":
+            outputs.append(output)
+        if perfdata != "":
+            perfdatas.append(perfdata)
+    perfdata = " ".join(perfdatas)
+    if perfdata == '':
+        return ''
+    else:
+        return perfdata
 
 def format_output(service, ds_name):
     """ Format value for derive type """
