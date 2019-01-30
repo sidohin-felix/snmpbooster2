@@ -75,7 +75,7 @@ def set_output_and_status(check_result):
             # Get output
             #output = get_output(check_result['db_data'])
             #I've overwritten this with out ourput...
-            output = customFormatterSTM.customOutputCreator(str(check_result))
+            output = customFormatterSTM.customOutputCreator(check_result)
             #Let's add some perfdata just to make sure.
             output = output + " | " + get_perfdata(check_result['db_data'])
 

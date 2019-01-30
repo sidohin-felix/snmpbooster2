@@ -1,5 +1,7 @@
 import json
 
+from shinken.log import logger
+
 #Original
 #def prct(ds_data):#
 #    try:
@@ -48,22 +50,12 @@ def disassembleTrigger(complexTrigger,real_triggers):
             real_triggers[component] = {"function":function,"bound":bound,"comparator":comparator}
         complexTrigger = complexTrigger[3:]
 
-def customOutputCreator(x):
-    y = x.replace("\'", "\"").strip()
-    y = y.replace("None", "null")
-    y = y.replace("True", "true")
-    y = y.replace(" ", "")
-    y = y.replace("\n", "")
-    y = y.replace("u\"", "\"")
-    y = y.replace("False", "false")
-    y = y.replace("OrderedDict([", "[")
-    y = y.replace("})", "}")
-    y = y.replace("])", "]")
-    y = y.replace("(\"", "\"")
-    z = json.loads(y)
+#x is a map which has a certain structure.
 
+def customOutputCreator(x):
     # First, we prepare the sensor data which will be used to return statuses.
 
+    #The [db_data][ds] contains the service data.
     temp = z['db_data']['ds']
     sensor_data = {}
 
@@ -76,16 +68,16 @@ def customOutputCreator(x):
     # for key in sensor_data.keys():
     #    print(key)
     #    print(sensor_data[key])
+    logger.info("Read sensor data sucessfully!")
 
     # Now we need to read the triggers, the issue is the trigers are composite, so it's unclear which
     # of the actual components are "failed", in this case we propose taking the first in the warning
-    # and if no warning then critical - it's a big "hack-ish" but whatever.
-
+    # and if no warning then critical - it's a bit "hack-ish" but whatever.
     real_triggers = {}
     temp = z['db_data']['triggers']
 
     # This is largely debug, feel free to ignore it
-    for key in dict(temp).keys():
+    for key in temp.keys():
         if ("warning" in temp[key]):
             composite_trigger = temp[key]['warning']
             if composite_trigger is not None: disassembleTrigger(composite_trigger, real_triggers)
@@ -94,6 +86,7 @@ def customOutputCreator(x):
             if composite_trigger is not None: disassembleTrigger(composite_trigger, real_triggers)
 
     # Now we can match sensor data and the triggers easily, basically for each we have component:{value:1000,state:OK)
+    logger.info("Disassembled triggers sucessfully!")
 
     state_map = {}
 
@@ -112,6 +105,7 @@ def customOutputCreator(x):
                                        sensor_data[component]['ds_max_oid_value_computed'])
             state_map[component] = {}
             state_map[component]['value'] = sensor_data[component]['ds_oid_value']
+            state_map[component]['name'] = sensor_data[component]['ds_name']
             if state is None:
                 state_map[component]['state'] = "NOT OK"
             else:
@@ -132,15 +126,10 @@ def customOutputCreator(x):
                 state_map[component]['value'] = sensor_data[component]['ds_oid_value']
             state_map[component]['state'] = "OK"
 
+    logger.info("Formatted sucessfully!")
     #Now we format the state map into a string and return it.
     #SNMP OK - nom = STATE(metrique), nom2 = STATE(metrique)
     output = ""
     for key in state_map.keys():
-        output = output + key + " = " + state_map[key]['state'] + " (" + str(state_map[key]['value']) + "), "
+        output = output + state_map[key]['name'] + " = " + state_map[key]['state'] + " (" + str(state_map[key]['value']) + "), "
     return output[:-2]
-
-
-if __name__ == '__main__':
-    with open("/Users/felixsidokhine/Untitled-8.json", 'r') as fin:
-        x = fin.read()
-    print(customOutputCreator(x))
